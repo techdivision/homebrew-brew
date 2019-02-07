@@ -5,9 +5,10 @@ class PhpAT56 < Formula
   sha256 "8147576001a832ff3d03cb2980caa2d6b584a10624f87ac459fcd3948c6e4a10"
 
   bottle do
-    sha256 "0f616518cdc1b20b0356ca22e7dd77a69da5c4f6354932868bd8ed3196f04872" => :mojave
-    sha256 "1d19ae0c315760f6d1cb97bc6437eaa6b1413f0cd022b93810c65eb62b4a56bb" => :high_sierra
-    sha256 "30a6ca5cdfd8ec6ad6e5c1f6f251248da3fff6f75d8916b1811ec5b3f8d17b0f" => :sierra
+    root_url "https://dl.bintray.com/henkrehorst/homebrew-php"
+    sha256 "685d1214b26a1cb6cb21449517aa733d73db7f75ea7300fafb42dbe3f6d6c588" => :mojave
+    sha256 "20bc6ceafa80b22af0f24ba839c67a0d91aaa085d92a469c673d132d03b3f44f" => :high_sierra
+    sha256 "e497517c5f223004bb340b8d27ae1bc2b36e645872f08e3d60a661abeb0c9006" => :sierra
   end
 
   keg_only :versioned_formula
@@ -42,7 +43,7 @@ class PhpAT56 < Formula
   # see https://github.com/php/php-src/pull/3472
   patch :DATA
 
- 
+
   def install
     # Ensure that libxml2 will be detected correctly in older MacOS
     if MacOS.version == :el_capitan || MacOS.version == :sierra
@@ -80,10 +81,11 @@ class PhpAT56 < Formula
     # API compatibility with tidy-html5 v5.0.0 - https://github.com/htacg/tidy-html5/issues/224
     inreplace "ext/tidy/tidy.c", "buffio.h", "tidybuffio.h"
 
+
     # icu4c 61.1 compatability
     ENV.append "CPPFLAGS", "-DU_USING_ICU_NAMESPACE=1"
 
-    config_path = etc/"php/#{php_version}"
+    config_path = etc/"valet-php/#{php_version}"
     # Prevent system pear config from inhibiting pear install
     (config_path/"pear.conf").delete if (config_path/"pear.conf").exist?
 
@@ -173,11 +175,11 @@ class PhpAT56 < Formula
     orig_ext_dir = File.basename(extension_dir)
     inreplace bin/"php-config", lib/"php", prefix/"pecl"
     inreplace "php.ini-development", %r{; ?extension_dir = "\./"},
-      "extension_dir = \"#{HOMEBREW_PREFIX}/lib/php/pecl/#{orig_ext_dir}\""
+              "extension_dir = \"#{HOMEBREW_PREFIX}/lib/php/pecl/#{orig_ext_dir}\""
 
     config_files = {
-      "php.ini-development"   => "php.ini",
-      "sapi/fpm/php-fpm.conf" => "php-fpm.conf",
+        "php.ini-development"   => "php.ini",
+        "sapi/fpm/php-fpm.conf" => "php-fpm.conf",
     }
     config_files.each_value do |dst|
       dst_default = config_path/"#{dst}.default"
@@ -194,14 +196,14 @@ class PhpAT56 < Formula
   def post_install
     pear_prefix = pkgshare/"pear"
     pear_files = %W[
-      #{pear_prefix}/.depdblock
+    #{pear_prefix}/.depdblock
       #{pear_prefix}/.filemap
       #{pear_prefix}/.depdb
       #{pear_prefix}/.lock
     ]
 
     %W[
-      #{pear_prefix}/.channels
+    #{pear_prefix}/.channels
       #{pear_prefix}/.channels/.alias
     ].each do |f|
       chmod 0755, f
@@ -221,17 +223,17 @@ class PhpAT56 < Formula
     pear_path = HOMEBREW_PREFIX/"share/pear@#{php_version}"
     cp_r pkgshare/"pear/.", pear_path
     {
-      "php_ini"  => etc/"php/#{php_version}/php.ini",
-      "php_dir"  => pear_path,
-      "doc_dir"  => pear_path/"doc",
-      "ext_dir"  => pecl_path/php_basename,
-      "bin_dir"  => opt_bin,
-      "data_dir" => pear_path/"data",
-      "cfg_dir"  => pear_path/"cfg",
-      "www_dir"  => pear_path/"htdocs",
-      "man_dir"  => HOMEBREW_PREFIX/"share/man",
-      "test_dir" => pear_path/"test",
-      "php_bin"  => opt_bin/"php",
+        "php_ini"  => etc/"valet-php/#{php_version}/php.ini",
+        "php_dir"  => pear_path,
+        "doc_dir"  => pear_path/"doc",
+        "ext_dir"  => pecl_path/php_basename,
+        "bin_dir"  => opt_bin,
+        "data_dir" => pear_path/"data",
+        "cfg_dir"  => pear_path/"cfg",
+        "www_dir"  => pear_path/"htdocs",
+        "man_dir"  => HOMEBREW_PREFIX/"share/man",
+        "test_dir" => pear_path/"test",
+        "php_bin"  => opt_bin/"php",
     }.each do |key, value|
       value.mkpath if key =~ /(?<!bin|man)_dir$/
       system bin/"pear", "config-set", key, value, "system"
@@ -242,11 +244,11 @@ class PhpAT56 < Formula
     %w[
       opcache
     ].each do |e|
-      ext_config_path = etc/"php/#{php_version}/conf.d/ext-#{e}.ini"
+      ext_config_path = etc/"valet-php/#{php_version}/conf.d/ext-#{e}.ini"
       extension_type = (e == "opcache") ? "zend_extension" : "extension"
       if ext_config_path.exist?
         inreplace ext_config_path,
-          /#{extension_type}=.*$/, "#{extension_type}=#{php_ext_dir}/#{e}.so"
+                  /#{extension_type}=.*$/, "#{extension_type}=#{php_ext_dir}/#{e}.so"
       else
         ext_config_path.write <<~EOS
           [#{e}]
@@ -306,17 +308,17 @@ class PhpAT56 < Formula
 
   test do
     assert_match /^Zend OPcache$/, shell_output("#{bin}/php -i"),
-      "Zend OPCache extension not loaded"
+                 "Zend OPCache extension not loaded"
     # Test related to libxml2 and
     # https://github.com/Homebrew/homebrew-core/issues/28398
     assert_includes MachO::Tools.dylibs("#{bin}/php"),
-      "#{Formula["libpq"].opt_lib}/libpq.5.dylib"
+                    "#{Formula["libpq"].opt_lib}/libpq.5.dylib"
     system "#{sbin}/php-fpm", "-t"
     system "#{bin}/phpdbg", "-V"
     system "#{bin}/php-cgi", "-m"
     # Prevent SNMP extension to be added
     assert_no_match /^snmp$/, shell_output("#{bin}/php -m"),
-      "SNMP extension doesn't work reliably with Homebrew on High Sierra"
+                    "SNMP extension doesn't work reliably with Homebrew on High Sierra"
     begin
       require "socket"
 
