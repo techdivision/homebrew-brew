@@ -5,7 +5,7 @@ class PhpAT56 < Formula
   sha256 "8147576001a832ff3d03cb2980caa2d6b584a10624f87ac459fcd3948c6e4a10"
 
   bottle do
-    root_url "https://dl.bintray.com/techdivision/homebrew-brew/"
+    root_url "https://dl.bintray.com/techdivision/homebrew-brew"
     sha256 "fdfe900c9669adced0ec505ea56888e7f6def3325580e999564d73b8c01c5220" => :mojave
   end
 
